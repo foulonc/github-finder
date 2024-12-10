@@ -1,19 +1,21 @@
 import requests
+import os
 import json
 from datetime import datetime, timedelta
 
-# GitHub repository to query
-REPO = "octocat/Hello-World"  # Replace with the repository you want to query
+# Use the GitHub token from the environment
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+if not GITHUB_TOKEN:
+    raise EnvironmentError("GITHUB_TOKEN not found in environment variables!")
 
-# GitHub token from environment
-GITHUB_TOKEN = "GITHUB_TOKEN"
 HEADERS = {"Authorization": f"token {GITHUB_TOKEN}"}
 
-# Output file for filtered releases
+# Dynamically fetch the current repository
+REPO = os.getenv("GITHUB_REPOSITORY", "octocat/Hello-World")  # Default repo for testing
+
 OUTPUT_FILE = "filtered_releases.json"
 
 def get_previous_month_range():
-    """Get the start and end timestamps for the previous month."""
     today = datetime.today()
     first_day_this_month = today.replace(day=1)
     last_day_last_month = first_day_this_month - timedelta(days=1)
@@ -21,14 +23,15 @@ def get_previous_month_range():
     return first_day_last_month, last_day_last_month
 
 def fetch_github_releases(repo):
-    """Fetch all releases for a given GitHub repository."""
-    url = f"https://api.github.com/repos/github-finder/releases"
+    url = f"https://api.github.com/repos/{repo}/releases"
     releases = []
     page = 1
 
     while True:
         response = requests.get(url, headers=HEADERS, params={"page": page, "per_page": 100})
-        if response.status_code != 200:
+        if response.status_code == 401:
+            raise PermissionError("Bad credentials. Check your GITHUB_TOKEN.")
+        elif response.status_code != 200:
             print(f"Error fetching releases: {response.status_code}, {response.json()}")
             break
 
@@ -42,17 +45,13 @@ def fetch_github_releases(repo):
     return releases
 
 def filter_releases_by_date(releases, start_date, end_date):
-    """Filter releases based on their published date."""
     filtered = []
     for release in releases:
         published_at = release.get("published_at")
         if not published_at:
             continue
 
-        # Convert to datetime object
         published_date = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
-
-        # Filter by range
         if start_date <= published_date <= end_date:
             filtered.append({
                 "name": release.get("name"),
@@ -63,7 +62,6 @@ def filter_releases_by_date(releases, start_date, end_date):
     return filtered
 
 def write_to_file(data, file_name):
-    """Write filtered releases to a JSON file."""
     with open(file_name, "w") as f:
         json.dump(data, f, indent=4)
     print(f"Filtered releases saved to {file_name}")
