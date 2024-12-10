@@ -45,27 +45,31 @@ def fetch_github_releases(repo):
 
     return releases
 
-# def filter_releases_by_date(releases, start_date, end_date):
-#     filtered = []
-#     for release in releases:
-#         published_at = release.get("published_at")
-#         if not published_at:
-#             continue
 
-#         # Convert to timezone-aware datetime object
-#         published_date = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
 
-#         # Filter by range
-#         if start_date <= published_date <= end_date:
-#             filtered.append({
-#                 "name": release.get("name"),
-#                 "tag_name": release.get("tag_name"),
-#                 "published_at": published_at,
-#                 "html_url": release.get("html_url")
-#             })
-#     return filtered
 def filter_releases_by_date(releases, start_date, end_date):
-    return releases  # Skip filtering for debugging
+    filtered = []
+    for release in releases:
+        published_at = release.get("published_at")
+        if not published_at:
+            print(f"Skipping release without 'published_at': {release.get('name')}")
+            continue
+
+        published_date = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
+        print(f"Checking release '{release.get('name')}' published at {published_date}")  # Debug log
+
+        if start_date <= published_date <= end_date:
+            print(f"Including release: {release.get('name')}")
+            filtered.append({
+                "name": release.get("name"),
+                "tag_name": release.get("tag_name"),
+                "published_at": published_at,
+                "html_url": release.get("html_url")
+            })
+
+    print(f"Total filtered releases: {len(filtered)}")
+    return filtered
+
 
 
 def write_to_file(data, file_name):
