@@ -1,7 +1,7 @@
 import requests
 import os
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Use the GitHub token from the environment
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -16,7 +16,8 @@ REPO = os.getenv("GITHUB_REPOSITORY", "octocat/Hello-World")  # Default repo for
 OUTPUT_FILE = "filtered_releases.json"
 
 def get_previous_month_range():
-    today = datetime.today()
+    """Get the start and end timestamps for the previous month."""
+    today = datetime.now(timezone.utc)  # Use timezone-aware datetime
     first_day_this_month = today.replace(day=1)
     last_day_last_month = first_day_this_month - timedelta(days=1)
     first_day_last_month = last_day_last_month.replace(day=1)
@@ -51,7 +52,10 @@ def filter_releases_by_date(releases, start_date, end_date):
         if not published_at:
             continue
 
+        # Convert to timezone-aware datetime object
         published_date = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
+
+        # Filter by range
         if start_date <= published_date <= end_date:
             filtered.append({
                 "name": release.get("name"),
