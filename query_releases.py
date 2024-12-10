@@ -11,7 +11,7 @@ if not GITHUB_TOKEN:
 HEADERS = {"Authorization": f"token {GITHUB_TOKEN}"}
 
 # Dynamically fetch the current repository
-REPO = os.getenv("GITHUB_REPOSITORY", "octocat/Hello-World")  # Default repo for testing
+REPO = os.getenv("GITHUB_REPOSITORY", "foulonc/github-finder")  # Default repo for testing
 
 OUTPUT_FILE = "filtered_releases.json"
 
