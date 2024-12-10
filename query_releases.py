@@ -22,7 +22,7 @@ def get_previous_month_range():
 
 def fetch_github_releases(repo):
     """Fetch all releases for a given GitHub repository."""
-    url = f"https://api.github.com/repos/bicep-module-library/releases"
+    url = f"https://api.github.com/repos/github-finder/releases"
     releases = []
     page = 1
 
